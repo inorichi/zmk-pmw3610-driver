@@ -35,6 +35,20 @@ config PMW3610_CPI_DIVIDOR
 	help
 	  Default CPI dividor value.
 
+config PMW3610_SCROLL_CPI
+	int "PMW3610's CPI in scroll mode"
+	default 200
+	range 200 3200
+	help
+	  Scroll CPI value, with 200 step
+
+config PMW3610_SCROLL_CPI_DIVIDOR
+	int "PMW3610's CPI dividor in scroll mode"
+	default 8
+	range 1 100
+	help
+	  Scroll CPI dividor value.
+
 config PMW3610_REST1_SAMPLE_TIME_MS
 	int "PMW3610's sample time in REST1 stage"
 	default 100

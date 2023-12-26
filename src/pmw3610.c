@@ -13,7 +13,6 @@
 #include <zephyr/kernel.h>
 #include <zephyr/sys/byteorder.h>
 #include <zephyr/input/input.h>
-#include <zmk/keymap.h>
 #include "pmw3610.h"
 
 #include <zephyr/logging/log.h>
@@ -646,13 +645,23 @@ static int pmw3610_report_data(const struct device *dev) {
         return -EBUSY;
     }
 
+    uint32_t dividor;
+
     bool is_scroll = is_scroll_layer(dev);
     if (is_scroll && data->curr_mode != 1) {
-        set_cpi(dev, 200);
+        set_cpi(dev, CONFIG_PMW3610_SCROLL_CPI);
         data->curr_mode = 1;
     } else if (!is_scroll && data->curr_mode != 0) {
         set_cpi(dev, CONFIG_PMW3610_CPI);
         data->curr_mode = 0;
+    }
+    switch (data->curr_mode) {
+    case 1:
+        dividor = CONFIG_PMW3610_SCROLL_CPI_DIVIDOR;
+        break;
+    default:
+        dividor = CONFIG_PMW3610_CPI_DIVIDOR;
+        break;
     }
 
     int err = motion_burst_read(dev, buf, sizeof(buf));
@@ -660,10 +669,10 @@ static int pmw3610_report_data(const struct device *dev) {
         return err;
     }
 
-    int16_t x = TOINT16((buf[PMW3610_X_L_POS] + ((buf[PMW3610_XY_H_POS] & 0xF0) << 4)), 12) /
-                CONFIG_PMW3610_CPI_DIVIDOR;
-    int16_t y = TOINT16((buf[PMW3610_Y_L_POS] + ((buf[PMW3610_XY_H_POS] & 0x0F) << 8)), 12) /
-                CONFIG_PMW3610_CPI_DIVIDOR;
+    int16_t x =
+        TOINT16((buf[PMW3610_X_L_POS] + ((buf[PMW3610_XY_H_POS] & 0xF0) << 4)), 12) / dividor;
+    int16_t y =
+        TOINT16((buf[PMW3610_Y_L_POS] + ((buf[PMW3610_XY_H_POS] & 0x0F) << 8)), 12) / dividor;
 
     if (IS_ENABLED(CONFIG_PMW3610_ORIENTATION_0)) {
         data->x = -x;

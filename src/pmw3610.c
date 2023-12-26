@@ -645,7 +645,7 @@ static int pmw3610_report_data(const struct device *dev) {
         return -EBUSY;
     }
 
-    uint32_t dividor;
+    int32_t dividor;
 
     bool is_scroll = is_scroll_layer(dev);
     if (is_scroll && data->curr_mode != 1) {

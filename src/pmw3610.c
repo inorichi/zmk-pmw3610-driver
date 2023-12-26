@@ -695,7 +695,7 @@ static int pmw3610_report_data(const struct device *dev) {
             input_report_rel(dev, INPUT_REL_X, data->x, false, K_FOREVER);
             input_report_rel(dev, INPUT_REL_Y, data->y, true, K_FOREVER);
         } else {
-            input_report_rel(dev, INPUT_REL_WHEEL, data->x, true, K_FOREVER);
+            input_report_rel(dev, INPUT_REL_WHEEL, data->y, true, K_FOREVER);
         }
     }
 

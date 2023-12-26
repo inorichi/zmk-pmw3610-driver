@@ -13,6 +13,7 @@
 #include <zephyr/kernel.h>
 #include <zephyr/sys/byteorder.h>
 #include <zephyr/input/input.h>
+#include <zmk/keymap.h>
 #include "pmw3610.h"
 
 #include <zephyr/logging/log.h>
@@ -624,14 +625,34 @@ static void pmw3610_async_init(struct k_work *work) {
     }
 }
 
+static bool is_scroll_layer(const struct device *dev) {
+    const struct pixart_config *config = dev->config;
+    uint8_t curr_layer = zmk_keymap_highest_layer_active();
+    for (size_t i = 0; i < config->scroll_layers_size; i++) {
+        if (config->scroll_layers[i] == curr_layer) {
+            return true;
+        }
+    }
+    return false;
+}
+
 static int pmw3610_report_data(const struct device *dev) {
     struct pixart_data *data = dev->data;
-    struct pixart_config *config = dev->config;
+    const struct pixart_config *config = dev->config;
     uint8_t buf[PMW3610_BURST_SIZE];
 
     if (unlikely(!data->ready)) {
         LOG_WRN("Device is not initialized yet");
         return -EBUSY;
+    }
+
+    bool is_scroll = is_scroll_layer(dev);
+    if (is_scroll && data->curr_mode != 1) {
+        set_cpi(dev, 200);
+        data->curr_mode = 1;
+    } else if (!is_scroll && data->curr_mode != 0) {
+        set_cpi(dev, CONFIG_PMW3610_CPI);
+        data->curr_mode = 0;
     }
 
     int err = motion_burst_read(dev, buf, sizeof(buf));
@@ -683,14 +704,6 @@ static int pmw3610_report_data(const struct device *dev) {
 #endif
 
     if (data->x != 0 || data->y != 0) {
-        uint8_t curr_layer = zmk_keymap_highest_layer_active();
-        bool is_scroll = false;
-        for (size_t i = 0; i < config->scroll_layers_size; i++) {
-            if (config->scroll_layers[i] == curr_layer) {
-                is_scroll = true;
-                break;
-            }
-        }
         if (!is_scroll) {
             input_report_rel(dev, INPUT_REL_X, data->x, false, K_FOREVER);
             input_report_rel(dev, INPUT_REL_Y, data->y, true, K_FOREVER);
@@ -704,7 +717,6 @@ static int pmw3610_report_data(const struct device *dev) {
 
 static void pmw3610_gpio_callback(const struct device *gpiob, struct gpio_callback *cb,
                                   uint32_t pins) {
-    int err;
     struct pixart_data *data = CONTAINER_OF(cb, struct pixart_data, irq_gpio_cb);
     const struct device *dev = data->dev;
 

@@ -626,6 +626,7 @@ static void pmw3610_async_init(struct k_work *work) {
 
 static int pmw3610_report_data(const struct device *dev) {
     struct pixart_data *data = dev->data;
+    struct pixart_config *config = dev->config;
     uint8_t buf[PMW3610_BURST_SIZE];
 
     if (unlikely(!data->ready)) {
@@ -682,8 +683,20 @@ static int pmw3610_report_data(const struct device *dev) {
 #endif
 
     if (data->x != 0 || data->y != 0) {
-        input_report_rel(dev, INPUT_REL_X, data->x, false, K_FOREVER);
-        input_report_rel(dev, INPUT_REL_Y, data->y, true, K_FOREVER);
+        uint8_t curr_layer = zmk_keymap_highest_layer_active();
+        bool is_scroll = false;
+        for (size_t i = 0; i < config->scroll_layers_size; i++) {
+            if (config->scroll_layers[i] == curr_layer) {
+                is_scroll = true;
+                break;
+            }
+        }
+        if (!is_scroll) {
+            input_report_rel(dev, INPUT_REL_X, data->x, false, K_FOREVER);
+            input_report_rel(dev, INPUT_REL_Y, data->y, true, K_FOREVER);
+        } else {
+            input_report_rel(dev, INPUT_REL_WHEEL, data->x, true, K_FOREVER);
+        }
     }
 
     return err;
@@ -805,6 +818,8 @@ static int pmw3610_init(const struct device *dev) {
                     },                                                                             \
             },                                                                                     \
         .cs_gpio = SPI_CS_GPIOS_DT_SPEC_GET(DT_DRV_INST(n)),                                       \
+        .scroll_layers = DT_PROP(DT_DRV_INST(n), scroll_layers),                                   \
+        .scroll_layers_size = DT_PROP_LEN(DT_DRV_INST(n), scroll_layers),                          \
     };                                                                                             \
                                                                                                    \
     DEVICE_DT_INST_DEFINE(n, pmw3610_init, NULL, &data##n, &config##n, POST_KERNEL,                \

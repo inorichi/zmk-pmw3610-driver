@@ -44,6 +44,8 @@ struct pixart_config {
     struct gpio_dt_spec irq_gpio;
     struct spi_dt_spec bus;
     struct gpio_dt_spec cs_gpio;
+    size_t scroll_layers_size;
+    int32_t scroll_layers[];
 };
 
 /** @brief Sensor specific attributes of PIXART. */

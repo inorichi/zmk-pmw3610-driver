@@ -648,20 +648,19 @@ static int pmw3610_report_data(const struct device *dev) {
     int32_t dividor;
 
     bool is_scroll = is_scroll_layer(dev);
-    if (is_scroll && data->curr_mode != 1) {
-        set_cpi(dev, CONFIG_PMW3610_SCROLL_CPI);
-        data->curr_mode = 1;
-    } else if (!is_scroll && data->curr_mode != 0) {
-        set_cpi(dev, CONFIG_PMW3610_CPI);
-        data->curr_mode = 0;
-    }
-    switch (data->curr_mode) {
-    case 1:
+    if (is_scroll) {
+        if (data->curr_mode != 1) {
+            set_cpi(dev, CONFIG_PMW3610_SCROLL_CPI);
+            data->curr_mode = 1;
+            data->scroll_delta = 0;
+        }
         dividor = CONFIG_PMW3610_SCROLL_CPI_DIVIDOR;
-        break;
-    default:
+    } else {
+        if (data->curr_mode != 0) {
+            set_cpi(dev, CONFIG_PMW3610_CPI);
+            data->curr_mode = 0;
+        }
         dividor = CONFIG_PMW3610_CPI_DIVIDOR;
-        break;
     }
 
     int err = motion_burst_read(dev, buf, sizeof(buf));
@@ -717,7 +716,12 @@ static int pmw3610_report_data(const struct device *dev) {
             input_report_rel(dev, INPUT_REL_X, data->x, false, K_FOREVER);
             input_report_rel(dev, INPUT_REL_Y, data->y, true, K_FOREVER);
         } else {
-            input_report_rel(dev, INPUT_REL_WHEEL, data->y, true, K_FOREVER);
+            data->scroll_delta += data->y;
+            if (abs(data->scroll_delta) > CONFIG_PMW3610_SCROLL_TICK) {
+                input_report_rel(dev, INPUT_REL_WHEEL, data->scroll_delta > 0 ? 1 : -1, true,
+                                 K_FOREVER);
+                data->scroll_delta = 0;
+            }
         }
     }
 

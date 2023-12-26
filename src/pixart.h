@@ -22,6 +22,7 @@ struct pixart_data {
     int16_t y;
 
     uint8_t curr_mode;
+    int32_t scroll_delta;
 
     // motion interrupt isr
     struct gpio_callback irq_gpio_cb;

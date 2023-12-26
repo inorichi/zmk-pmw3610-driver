@@ -15,13 +15,14 @@
 extern "C" {
 #endif
 
+enum pixart_input_mode { MOVE = 0, SCROLL, SNIPE };
+
 /* device data structure */
 struct pixart_data {
     const struct device *dev;
-    int16_t x;
-    int16_t y;
 
-    uint8_t curr_mode;
+    enum pixart_input_mode curr_mode;
+    uint32_t curr_cpi;
     int32_t scroll_delta;
 
     // motion interrupt isr
@@ -47,8 +48,10 @@ struct pixart_config {
     struct gpio_dt_spec irq_gpio;
     struct spi_dt_spec bus;
     struct gpio_dt_spec cs_gpio;
-    size_t scroll_layers_size;
-    int32_t scroll_layers[];
+    size_t scroll_layers_len;
+    int32_t scroll_layers[10];
+    size_t snipe_layers_len;
+    int32_t snipe_layers[];
 };
 
 /** @brief Sensor specific attributes of PIXART. */

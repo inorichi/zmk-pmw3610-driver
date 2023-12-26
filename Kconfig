@@ -23,35 +23,35 @@ config PMW3610_SMART_ALGORITHM
 
 config PMW3610_CPI
 	int "PMW3610's default CPI"
-	default 3200
+	default 800
 	range 200 3200
 	help
 	  Default CPI value, with 200 step
 
 config PMW3610_CPI_DIVIDOR
 	int "PMW3610's default CPI dividor"
-	default 4
+	default 1
 	range 1 100
 	help
 	  Default CPI dividor value.
 
-config PMW3610_SCROLL_CPI
-	int "PMW3610's CPI in scroll mode"
+config PMW3610_SNIPE_CPI
+	int "PMW3610's CPI in snipe mode"
 	default 200
 	range 200 3200
 	help
-	  Scroll CPI value, with 200 step
+	  Snipe CPI value, with 200 step
 
-config PMW3610_SCROLL_CPI_DIVIDOR
-	int "PMW3610's CPI dividor in scroll mode"
+config PMW3610_SNIPE_CPI_DIVIDOR
+	int "PMW3610's CPI dividor in snipe mode"
 	default 1
 	range 1 100
 	help
-	  Scroll CPI dividor value.
+	  Snipe CPI dividor value.
 
 config PMW3610_SCROLL_TICK
 	int "PMW3610's required ticks to produce a scroll report"
-	default 16
+	default 12
 	help
 	  Scroll tick value.
 

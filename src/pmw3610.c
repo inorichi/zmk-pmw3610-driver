@@ -408,6 +408,17 @@ static int set_cpi(const struct device *dev, uint32_t cpi) {
         return err;
     }
 
+    struct pixart_data *dev_data = dev->data;
+    dev_data->curr_cpi = cpi;
+
+    return 0;
+}
+
+static int set_cpi_if_needed(const struct device *dev, uint32_t cpi) {
+    struct pixart_data *data = dev->data;
+    if (cpi != data->curr_cpi) {
+        return set_cpi(dev, cpi);
+    }
     return 0;
 }
 
@@ -624,20 +635,24 @@ static void pmw3610_async_init(struct k_work *work) {
     }
 }
 
-static bool is_scroll_layer(const struct device *dev) {
+static enum pixart_input_mode get_input_mode_for_current_layer(const struct device *dev) {
     const struct pixart_config *config = dev->config;
     uint8_t curr_layer = zmk_keymap_highest_layer_active();
-    for (size_t i = 0; i < config->scroll_layers_size; i++) {
-        if (config->scroll_layers[i] == curr_layer) {
-            return true;
+    for (size_t i = 0; i < config->scroll_layers_len; i++) {
+        if (curr_layer == config->scroll_layers[i]) {
+            return SCROLL;
         }
     }
-    return false;
+    for (size_t i = 0; i < config->snipe_layers_len; i++) {
+        if (curr_layer == config->snipe_layers[i]) {
+            return SNIPE;
+        }
+    }
+    return MOVE;
 }
 
 static int pmw3610_report_data(const struct device *dev) {
     struct pixart_data *data = dev->data;
-    const struct pixart_config *config = dev->config;
     uint8_t buf[PMW3610_BURST_SIZE];
 
     if (unlikely(!data->ready)) {
@@ -646,53 +661,63 @@ static int pmw3610_report_data(const struct device *dev) {
     }
 
     int32_t dividor;
-
-    bool is_scroll = is_scroll_layer(dev);
-    if (is_scroll) {
-        if (data->curr_mode != 1) {
-            set_cpi(dev, CONFIG_PMW3610_SCROLL_CPI);
-            data->curr_mode = 1;
+    enum pixart_input_mode input_mode = get_input_mode_for_current_layer(dev);
+    bool input_mode_changed = data->curr_mode != input_mode;
+    switch (input_mode) {
+    case MOVE:
+        set_cpi_if_needed(dev, CONFIG_PMW3610_CPI);
+        dividor = CONFIG_PMW3610_CPI_DIVIDOR;
+        break;
+    case SCROLL:
+        set_cpi_if_needed(dev, CONFIG_PMW3610_CPI);
+        if (input_mode_changed) {
             data->scroll_delta = 0;
         }
-        dividor = CONFIG_PMW3610_SCROLL_CPI_DIVIDOR;
-    } else {
-        if (data->curr_mode != 0) {
-            set_cpi(dev, CONFIG_PMW3610_CPI);
-            data->curr_mode = 0;
-        }
-        dividor = CONFIG_PMW3610_CPI_DIVIDOR;
+        dividor = 1; // this should be handled with the ticks rather than dividors
+        break;
+    case SNIPE:
+        set_cpi_if_needed(dev, CONFIG_PMW3610_SNIPE_CPI);
+        dividor = CONFIG_PMW3610_SNIPE_CPI_DIVIDOR;
+        break;
+    default:
+        return -ENOTSUP;
     }
+
+    data->curr_mode = input_mode;
 
     int err = motion_burst_read(dev, buf, sizeof(buf));
     if (err) {
         return err;
     }
 
-    int16_t x =
+    int16_t raw_x =
         TOINT16((buf[PMW3610_X_L_POS] + ((buf[PMW3610_XY_H_POS] & 0xF0) << 4)), 12) / dividor;
-    int16_t y =
+    int16_t raw_y =
         TOINT16((buf[PMW3610_Y_L_POS] + ((buf[PMW3610_XY_H_POS] & 0x0F) << 8)), 12) / dividor;
 
+    int16_t x;
+    int16_t y;
+
     if (IS_ENABLED(CONFIG_PMW3610_ORIENTATION_0)) {
-        data->x = -x;
-        data->y = y;
+        x = -raw_x;
+        y = raw_y;
     } else if (IS_ENABLED(CONFIG_PMW3610_ORIENTATION_90)) {
-        data->x = y;
-        data->y = -x;
+        x = raw_y;
+        y = -raw_x;
     } else if (IS_ENABLED(CONFIG_PMW3610_ORIENTATION_180)) {
-        data->x = x;
-        data->y = -y;
+        x = raw_x;
+        y = -raw_y;
     } else if (IS_ENABLED(CONFIG_PMW3610_ORIENTATION_270)) {
-        data->x = -y;
-        data->y = x;
+        x = -raw_y;
+        y = raw_x;
     }
 
     if (IS_ENABLED(CONFIG_PMW3610_INVERT_X)) {
-        data->x = -data->x;
+        x = -x;
     }
 
     if (IS_ENABLED(CONFIG_PMW3610_INVERT_Y)) {
-        data->y = -data->y;
+        y = -y;
     }
 
 #ifdef CONFIG_PMW3610_SMART_ALGORITHM
@@ -711,12 +736,12 @@ static int pmw3610_report_data(const struct device *dev) {
     }
 #endif
 
-    if (data->x != 0 || data->y != 0) {
-        if (!is_scroll) {
-            input_report_rel(dev, INPUT_REL_X, data->x, false, K_FOREVER);
-            input_report_rel(dev, INPUT_REL_Y, data->y, true, K_FOREVER);
+    if (x != 0 || y != 0) {
+        if (input_mode != SCROLL) {
+            input_report_rel(dev, INPUT_REL_X, x, false, K_FOREVER);
+            input_report_rel(dev, INPUT_REL_Y, y, true, K_FOREVER);
         } else {
-            data->scroll_delta += data->y;
+            data->scroll_delta += y;
             if (abs(data->scroll_delta) > CONFIG_PMW3610_SCROLL_TICK) {
                 input_report_rel(dev, INPUT_REL_WHEEL, data->scroll_delta > 0 ? 1 : -1, true,
                                  K_FOREVER);
@@ -844,7 +869,9 @@ static int pmw3610_init(const struct device *dev) {
             },                                                                                     \
         .cs_gpio = SPI_CS_GPIOS_DT_SPEC_GET(DT_DRV_INST(n)),                                       \
         .scroll_layers = DT_PROP(DT_DRV_INST(n), scroll_layers),                                   \
-        .scroll_layers_size = DT_PROP_LEN(DT_DRV_INST(n), scroll_layers),                          \
+        .scroll_layers_len = DT_PROP_LEN(DT_DRV_INST(n), scroll_layers),                           \
+        .snipe_layers = DT_PROP(DT_DRV_INST(n), snipe_layers),                                     \
+        .snipe_layers_len = DT_PROP_LEN(DT_DRV_INST(n), snipe_layers),                             \
     };                                                                                             \
                                                                                                    \
     DEVICE_DT_INST_DEFINE(n, pmw3610_init, NULL, &data##n, &config##n, POST_KERNEL,                \

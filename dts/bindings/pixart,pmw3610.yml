@@ -12,3 +12,6 @@ properties:
   scroll-layers:
     type: array
     default: []
+  snipe-layers:
+    type: array
+    default: []

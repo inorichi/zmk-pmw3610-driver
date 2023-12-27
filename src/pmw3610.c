@@ -475,8 +475,8 @@ static int pmw3610_async_init_configure(const struct device *dev) {
 
     // set performace register: run mode, vel_rate, poshi_rate, poslo_rate
     if (!err) {
-        // use the recommended value in datasheet: normal, 4ms, 4ms, 4ms
-        err = reg_write(dev, PMW3610_REG_PERFORMANCE, 0x0D);
+        err = reg_write(dev, PMW3610_REG_PERFORMANCE,
+                        PMW3610_REG_FORCE_MODE | PMW3610_REG_POLLING_RATE);
     }
 
     // required downshift and rate registers

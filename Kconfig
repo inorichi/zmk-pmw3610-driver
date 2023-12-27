@@ -6,10 +6,10 @@
 #
 
 menuconfig PMW3610
-	bool "PMW3610 mouse optical sensor"
+    bool "PMW3610 mouse optical sensor"
   select SPI
-	help
-	  Enable PMW3610 mouse optical sensor.
+    help
+      Enable PMW3610 mouse optical sensor.
 
 if PMW3610
 
@@ -22,102 +22,120 @@ config PMW3610_SMART_ALGORITHM
     such as graniles and tiles.
 
 config PMW3610_CPI
-	int "PMW3610's default CPI"
-	default 800
-	range 200 3200
-	help
-	  Default CPI value, with 200 step
+    int "PMW3610's default CPI"
+    default 800
+    range 200 3200
+    help
+      Default CPI value, with 200 step
 
 config PMW3610_CPI_DIVIDOR
-	int "PMW3610's default CPI dividor"
-	default 1
-	range 1 100
-	help
-	  Default CPI dividor value.
+    int "PMW3610's default CPI dividor"
+    default 1
+    range 1 100
+    help
+      Default CPI dividor value.
 
 config PMW3610_SNIPE_CPI
-	int "PMW3610's CPI in snipe mode"
-	default 200
-	range 200 3200
-	help
-	  Snipe CPI value, with 200 step
+    int "PMW3610's CPI in snipe mode"
+    default 200
+    range 200 3200
+    help
+      Snipe CPI value, with 200 step
 
 config PMW3610_SNIPE_CPI_DIVIDOR
-	int "PMW3610's CPI dividor in snipe mode"
-	default 1
-	range 1 100
-	help
-	  Snipe CPI dividor value.
+    int "PMW3610's CPI dividor in snipe mode"
+    default 1
+    range 1 100
+    help
+      Snipe CPI dividor value.
 
 config PMW3610_SCROLL_TICK
-	int "PMW3610's required ticks to produce a scroll report"
-	default 20
-	help
-	  Scroll tick value.
-
-config PMW3610_RUN_DOWNSHIFT_TIME_MS
-	int "PMW3610's default RUN mode downshift time"
-	default 128
-	range 13 3264
-	help
-	  Default RUN mode downshift down time in milliseconds.
-	  Time after which sensor goes from RUN to REST1 mode.
-
-config PMW3610_REST1_SAMPLE_TIME_MS
-	int "PMW3610's sample time in REST1 stage"
-	default 40
-	range 10 2550
-	help
-	  Default REST1 mode sample period in millisecond
-
-config PMW3610_REST1_DOWNSHIFT_TIME_MS
-	int "PMW3610's default REST1 mode downshift time"
-	default 9600
-	help
-	  Default REST1 mode downshift down time in milliseconds.
-	  Time after which sensor goes from REST1 to REST2 mode.
-
-config PMW3610_REST2_SAMPLE_TIME_MS
-	int "PMW3610's sample time in REST2 stage"
-	default 0
-	range 0 2550
-	help
-	  Default REST2 mode sample period in millisecond.
-	  Minimum value is 10
-	  No optimal value provided by datasheet.
-
-config PMW3610_REST2_DOWNSHIFT_TIME_MS
-	int "PMW3610's default REST2 mode downshift time"
-	default 0
-	help
-	  Default REST2 mode downshift down time in milliseconds.
-	  Time after which sensor goes from REST2 to REST3 mode.
-	  No optimal value provided by datasheet.
-
-config PMW3610_REST3_SAMPLE_TIME_MS
-	int "PMW3610's sample time in REST3 stage"
-	default 0
-	range 0 2550
-	help
-	  Default REST2 mode sample period in millisecond.
-	  Minimum value is 10
-	  No optimal value provided by datasheet.
+    int "PMW3610's required ticks to produce a scroll report"
+    default 20
+    help
+      Scroll tick value.
 
 choice
-	prompt "Select PMW3610 sensor orientation"
-	default PMW3610_ORIENTATION_0
+    prompt "Select PMW3610's polling rate"
+    default PMW3610_POLLING_RATE_125 if !ZMK_USB
+    default PMW3610_POLLING_RATE_250 if ZMK_USB
+
+config PMW3610_POLLING_RATE_125
+    bool "125 Hz"
+
+config PMW3610_POLLING_RATE_250
+    bool "250 Hz"
+
+endchoice
+
+config PMW3610_FORCE_AWAKE
+    bool "PMW3610 forced awake mode"
+    help
+      This setting forces the sensor to always be in the RUN state.
+
+config PMW3610_RUN_DOWNSHIFT_TIME_MS
+    int "PMW3610's default RUN mode downshift time"
+    default 128
+    range 13 3264
+    help
+      Default RUN mode downshift down time in milliseconds.
+      Time after which sensor goes from RUN to REST1 mode.
+
+config PMW3610_REST1_SAMPLE_TIME_MS
+    int "PMW3610's sample time in REST1 stage"
+    default 40
+    range 10 2550
+    help
+      Default REST1 mode sample period in millisecond
+
+config PMW3610_REST1_DOWNSHIFT_TIME_MS
+    int "PMW3610's default REST1 mode downshift time"
+    default 9600
+    help
+      Default REST1 mode downshift down time in milliseconds.
+      Time after which sensor goes from REST1 to REST2 mode.
+
+config PMW3610_REST2_SAMPLE_TIME_MS
+    int "PMW3610's sample time in REST2 stage"
+    default 0
+    range 0 2550
+    help
+      Default REST2 mode sample period in millisecond.
+      Minimum value is 10.
+      No optimal value provided by datasheet.
+
+config PMW3610_REST2_DOWNSHIFT_TIME_MS
+    int "PMW3610's default REST2 mode downshift time"
+    default 0
+    help
+      Default REST2 mode downshift down time in milliseconds.
+      Time after which sensor goes from REST2 to REST3 mode.
+      No optimal value provided by datasheet.
+
+config PMW3610_REST3_SAMPLE_TIME_MS
+    int "PMW3610's sample time in REST3 stage"
+    default 0
+    range 0 2550
+    help
+      Default REST2 mode sample period in millisecond.
+      Minimum value is 10.
+      No optimal value provided by datasheet.
+
+choice
+    prompt "Select PMW3610 sensor orientation"
+    default PMW3610_ORIENTATION_0
 
 config PMW3610_ORIENTATION_0
-	bool "PMW3610 not rotated"
+    bool "PMW3610 not rotated"
 
 config PMW3610_ORIENTATION_90
-	bool "PMW3610 rotated 90 deg clockwise"
+    bool "PMW3610 rotated 90 deg clockwise"
 
 config PMW3610_ORIENTATION_180
-	bool "PMW3610 rotated 180 deg clockwise"
+    bool "PMW3610 rotated 180 deg clockwise"
 
 config PMW3610_ORIENTATION_270
-	bool "PMW3610 rotated 270 deg clockwise"
+    bool "PMW3610 rotated 270 deg clockwise"
 
 endchoice
 

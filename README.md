@@ -4,53 +4,42 @@ This work is based on [ufan's implementation](https://github.com/ufan/zmk/tree/s
 
 ## Installation
 
-Include this project on your ZMK's west manifest in `app/west.yml`:
+Include this project on your ZMK's west manifest in `config/west.yml`:
 
 ```yml
 manifest:
   remotes:
-    - name: zephyrproject-rtos
-      url-base: https://github.com/zephyrproject-rtos
     - name: zmkfirmware
-      url-base: https://github.com/zmkfirmware
-    - name: petejohanson
       url-base: https://github.com/petejohanson
     - name: inorichi
       url-base: https://github.com/inorichi
   projects:
-    - name: zephyr
-      remote: petejohanson
-      revision: v3.5.0+zmk-fixes
-      clone-depth: 1
-      import:
-        name-blocklist:
-          - ci-tools
-          - hal_altera
-          - hal_cypress
-          - hal_infineon
-          - hal_microchip
-          - hal_nxp
-          - hal_openisa
-          - hal_silabs
-          - hal_xtensa
-          - hal_st
-          - hal_ti
-          - loramac-node
-          - mcuboot
-          - mcumgr
-          - net-tools
-          - openthread
-          - edtt
-          - trusted-firmware-m
+    - name: zmk
+      remote: zmkfirmware
+      revision: feat/pointers-move-scroll
+      import: app/west.yml
     - name: zmk-pmw3610-driver
       remote: inorichi
       revision: main
   self:
-    west-commands: scripts/west-commands.yml
-
+    path: config
 ```
 
-Then on a terminal do `west update` to apply changes.
+Then, if building locally do:
+
+```bash
+$ west update
+```
+
+Or if using GitHub builds edit your `build.yml` to look like this:
+
+```yml
+on: [workflow_dispatch]
+
+jobs:
+  build:
+    uses: petejohanson/zmk/.github/workflows/build-user-config.yml@core/zephyr-3.5-update
+```
 
 Now, update your `board.overlay` adding the necessary bits (update the pins for your board):
 

@@ -76,21 +76,21 @@ Now, update your `board.overlay` adding the necessary bits (update the pins for 
 
 &spi0 {
     status = "okay";
-	compatible = "nordic,nrf-spim";
+    compatible = "nordic,nrf-spim";
     pinctrl-0 = <&spi0_default>;
     pinctrl-1 = <&spi0_sleep>;
     pinctrl-names = "default", "sleep";
     cs-gpios = <&gpio0 20 GPIO_ACTIVE_LOW>;
 
-	trackball: trackball@0 {
+    trackball: trackball@0 {
         status = "okay";
-		compatible = "pixart,pmw3610";
-		reg = <0>;
-		spi-max-frequency = <2000000>;
+        compatible = "pixart,pmw3610";
+        reg = <0>;
+        spi-max-frequency = <2000000>;
         irq-gpios = <&gpio0 6 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
         snipe-layers = <>; // optional indexes of snipe/precision layers
-		scroll-layers = <>; // optional indexes of drag scroll layers
-	};
+        scroll-layers = <>; // optional indexes of drag scroll layers
+    };
 };
 ```
 

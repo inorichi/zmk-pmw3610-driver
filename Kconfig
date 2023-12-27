@@ -51,7 +51,7 @@ config PMW3610_SNIPE_CPI_DIVIDOR
 
 config PMW3610_SCROLL_TICK
 	int "PMW3610's required ticks to produce a scroll report"
-	default 12
+	default 20
 	help
 	  Scroll tick value.
 

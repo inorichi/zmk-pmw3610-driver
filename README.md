@@ -94,11 +94,17 @@ Now, update your `board.overlay` adding the necessary bits (update the pins for 
 };
 ```
 
-Finally, enable the driver config in your `board.config` file (open the Kconfig file to find out all possible options):
+Now enable the driver config in your `board.config` file (open the Kconfig file to find out all possible options):
 
 ```conf
 CONFIG_SPI=y
 CONFIG_INPUT=y
 CONFIG_ZMK_MOUSE=y
 CONFIG_PMW3610=y
+```
+
+Finally, notify west the location of this module when building (this path is for the docker setup):
+
+```bash
+west build <your board and shield...> -DZMK_EXTRA_MODULES=/workspaces/zmk/zmk-pmw3610-driver
 ```

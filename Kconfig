@@ -55,48 +55,53 @@ config PMW3610_SCROLL_TICK
 	help
 	  Scroll tick value.
 
-config PMW3610_REST1_SAMPLE_TIME_MS
-	int "PMW3610's sample time in REST1 stage"
-	default 100
-	range 10 2550
-	help
-	  Default REST1 mode sample period in millisecond
-
-config PMW3610_REST2_SAMPLE_TIME_MS
-	int "PMW3610's sample time in REST2 stage"
-	default 200
-	range 10 2550
-	help
-	  Default REST2 mode sample period in millisecond.
-
-config PMW3610_REST3_SAMPLE_TIME_MS
-	int "PMW3610's sample time in REST3 stage"
-	default 300
-	range 10 2550
-	help
-	  Default REST2 mode sample period in millisecond.
-
 config PMW3610_RUN_DOWNSHIFT_TIME_MS
 	int "PMW3610's default RUN mode downshift time"
-	default 500
+	default 128
 	range 13 3264
 	help
 	  Default RUN mode downshift down time in milliseconds.
 	  Time after which sensor goes from RUN to REST1 mode.
 
+config PMW3610_REST1_SAMPLE_TIME_MS
+	int "PMW3610's sample time in REST1 stage"
+	default 40
+	range 10 2550
+	help
+	  Default REST1 mode sample period in millisecond
+
 config PMW3610_REST1_DOWNSHIFT_TIME_MS
 	int "PMW3610's default REST1 mode downshift time"
-	default 3000
+	default 9600
 	help
 	  Default REST1 mode downshift down time in milliseconds.
 	  Time after which sensor goes from REST1 to REST2 mode.
 
+config PMW3610_REST2_SAMPLE_TIME_MS
+	int "PMW3610's sample time in REST2 stage"
+	default 0
+	range 0 2550
+	help
+	  Default REST2 mode sample period in millisecond.
+	  Minimum value is 10
+	  No optimal value provided by datasheet.
+
 config PMW3610_REST2_DOWNSHIFT_TIME_MS
 	int "PMW3610's default REST2 mode downshift time"
-	default 30000
+	default 0
 	help
 	  Default REST2 mode downshift down time in milliseconds.
 	  Time after which sensor goes from REST2 to REST3 mode.
+	  No optimal value provided by datasheet.
+
+config PMW3610_REST3_SAMPLE_TIME_MS
+	int "PMW3610's sample time in REST3 stage"
+	default 0
+	range 0 2550
+	help
+	  Default REST2 mode sample period in millisecond.
+	  Minimum value is 10
+	  No optimal value provided by datasheet.
 
 choice
 	prompt "Select PMW3610 sensor orientation"

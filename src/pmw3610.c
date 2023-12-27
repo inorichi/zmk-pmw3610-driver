@@ -575,34 +575,36 @@ static int pmw3610_async_init_configure(const struct device *dev) {
         err = reg_write(dev, PMW3610_REG_PERFORMANCE, 0x0D);
     }
 
-    // sample period, which affects scaling of rest1 downshift time
-    if (!err) {
-        err = set_sample_time(dev, PMW3610_REG_REST1_PERIOD, CONFIG_PMW3610_REST1_SAMPLE_TIME_MS);
-    }
-
-    if (!err) {
-        err = set_sample_time(dev, PMW3610_REG_REST2_PERIOD, CONFIG_PMW3610_REST2_SAMPLE_TIME_MS);
-    }
-    if (!err) {
-        err = set_sample_time(dev, PMW3610_REG_REST3_PERIOD, CONFIG_PMW3610_REST3_SAMPLE_TIME_MS);
-    }
-
-    // downshift time for each rest mode
+    // required downshift and rate registers
     if (!err) {
         err = set_downshift_time(dev, PMW3610_REG_RUN_DOWNSHIFT,
                                  CONFIG_PMW3610_RUN_DOWNSHIFT_TIME_MS);
     }
-
+    if (!err) {
+        err = set_sample_time(dev, PMW3610_REG_REST1_PERIOD, CONFIG_PMW3610_REST1_SAMPLE_TIME_MS);
+    }
     if (!err) {
         err = set_downshift_time(dev, PMW3610_REG_REST1_DOWNSHIFT,
                                  CONFIG_PMW3610_REST1_DOWNSHIFT_TIME_MS);
     }
 
+    // downshift time for each rest mode
+#if CONFIG_PMW3610_REST2_DOWNSHIFT_TIME_MS > 0
     if (!err) {
         err = set_downshift_time(dev, PMW3610_REG_REST2_DOWNSHIFT,
                                  CONFIG_PMW3610_REST2_DOWNSHIFT_TIME_MS);
     }
-
+#endif
+#if CONFIG_PMW3610_REST2_SAMPLE_TIME_MS >= 10
+    if (!err) {
+        err = set_sample_time(dev, PMW3610_REG_REST2_PERIOD, CONFIG_PMW3610_REST2_SAMPLE_TIME_MS);
+    }
+#endif
+#if CONFIG_PMW3610_REST3_SAMPLE_TIME_MS >= 10
+    if (!err) {
+        err = set_sample_time(dev, PMW3610_REG_REST3_PERIOD, CONFIG_PMW3610_REST3_SAMPLE_TIME_MS);
+    }
+#endif
     if (err) {
         LOG_ERR("Config the sensor failed");
         return err;

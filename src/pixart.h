@@ -25,6 +25,12 @@ struct pixart_data {
     uint32_t curr_cpi;
     int32_t scroll_delta;
 
+#ifdef CONFIG_PMW3610_POLLING_RATE_125_SW
+    int64_t last_poll_time;
+    int16_t last_x;
+    int16_t last_y;
+#endif
+
     // motion interrupt isr
     struct gpio_callback irq_gpio_cb;
     // the work structure holding the trigger job

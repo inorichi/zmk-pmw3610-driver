@@ -103,10 +103,10 @@ extern "C" {
 #define PMW3610_SVALUE_TO_CPI(svalue) ((uint32_t)(svalue).val1)
 #define PMW3610_SVALUE_TO_TIME(svalue) ((uint32_t)(svalue).val1)
 
-#ifdef CONFIG_PMW3610_POLLING_RATE_125
-#define PMW3610_REG_POLLING_RATE 0x00
-#elif CONFIG_PMW3610_POLLING_RATE_250
+#if defined(CONFIG_PMW3610_POLLING_RATE_250) || defined(CONFIG_PMW3610_POLLING_RATE_125_SW)
 #define PMW3610_REG_POLLING_RATE 0x0D
+#elif defined(CONFIG_PMW3610_POLLING_RATE_125)
+#define PMW3610_REG_POLLING_RATE 0x00
 #else
 #error "A valid PMW3610 polling rate must be selected"
 #endif

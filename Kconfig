@@ -57,14 +57,16 @@ config PMW3610_SCROLL_TICK
 
 choice
     prompt "Select PMW3610's polling rate"
-    default PMW3610_POLLING_RATE_125 if !ZMK_USB
-    default PMW3610_POLLING_RATE_250 if ZMK_USB
+    default PMW3610_POLLING_RATE_250
+
+config PMW3610_POLLING_RATE_250
+    bool "250 Hz"
 
 config PMW3610_POLLING_RATE_125
     bool "125 Hz"
 
-config PMW3610_POLLING_RATE_250
-    bool "250 Hz"
+config PMW3610_POLLING_RATE_125_SW
+    bool "125 Hz with software implementation"
 
 endchoice
 

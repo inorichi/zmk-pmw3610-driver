@@ -475,8 +475,9 @@ static int pmw3610_async_init_configure(const struct device *dev) {
 
     // set performace register: run mode, vel_rate, poshi_rate, poslo_rate
     if (!err) {
-        err = reg_write(dev, PMW3610_REG_PERFORMANCE,
-                        PMW3610_REG_FORCE_MODE | PMW3610_REG_POLLING_RATE);
+        uint8_t value = PMW3610_REG_FORCE_MODE | PMW3610_REG_POLLING_RATE;
+        err = reg_write(dev, PMW3610_REG_PERFORMANCE, value);
+        LOG_INF("Set performance register to %u (reg value 0x%x)", value, value);
     }
 
     // required downshift and rate registers
@@ -639,6 +640,22 @@ static int pmw3610_report_data(const struct device *dev) {
         reg_write(dev, 0x32, 0x80);
 
         data->sw_smart_flag = true;
+    }
+#endif
+
+#ifdef CONFIG_PMW3610_POLLING_RATE_125_SW
+    int64_t curr_time = k_uptime_get();
+    if (data->last_poll_time == 0 || curr_time - data->last_poll_time > 8) {
+        data->last_poll_time = curr_time;
+        data->last_x = x;
+        data->last_y = y;
+        return 0;
+    } else {
+        x += data->last_x;
+        y += data->last_y;
+        data->last_poll_time = 0;
+        data->last_x = 0;
+        data->last_y = 0;
     }
 #endif
 

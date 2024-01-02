@@ -23,7 +23,8 @@ struct pixart_data {
 
     enum pixart_input_mode curr_mode;
     uint32_t curr_cpi;
-    int32_t scroll_delta;
+    int32_t scroll_delta_x;
+    int32_t scroll_delta_y;
 
 #ifdef CONFIG_PMW3610_POLLING_RATE_125_SW
     int64_t last_poll_time;

@@ -4,6 +4,8 @@ This work is based on [ufan's implementation](https://github.com/ufan/zmk/tree/s
 
 ## Installation
 
+Only GitHub actions builds are covered here. Local builds are different for each user, therefore it's not possible to cover all cases.
+
 Include this project on your ZMK's west manifest in `config/west.yml`:
 
 ```yml
@@ -25,13 +27,7 @@ manifest:
     path: config
 ```
 
-Then, if building locally do:
-
-```bash
-$ west update
-```
-
-Or if using GitHub builds edit your `build.yml` to look like this:
+Then, edit your `build.yml` to look like this:
 
 ```yml
 on: [workflow_dispatch]
@@ -41,7 +37,7 @@ jobs:
     uses: petejohanson/zmk/.github/workflows/build-user-config.yml@core/zephyr-3.5-update
 ```
 
-Now, update your `board.overlay` adding the necessary bits (update the pins for your board):
+Now, update your `board.overlay` adding the necessary bits (update the pins for your board accordingly):
 
 ```dts
 &pinctrl {
@@ -77,23 +73,20 @@ Now, update your `board.overlay` adding the necessary bits (update the pins for 
         reg = <0>;
         spi-max-frequency = <2000000>;
         irq-gpios = <&gpio0 6 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
-        snipe-layers = <>; // optional indexes of snipe/precision layers
-        scroll-layers = <>; // optional indexes of drag scroll layers
+
+        /*   optional features   */
+        // snipe-layers = <1>;
+        // scroll-layers = <2 3>;
+        // automouse-layer = <4>;
     };
 };
 ```
 
-Now enable the driver config in your `board.config` file (open the Kconfig file to find out all possible options):
+Now enable the driver config in your `board.config` file (read the Kconfig file to find out all possible options):
 
 ```conf
 CONFIG_SPI=y
 CONFIG_INPUT=y
 CONFIG_ZMK_MOUSE=y
 CONFIG_PMW3610=y
-```
-
-Finally, notify west the location of this module when building (this path is for the docker setup):
-
-```bash
-west build <your board and shield...> -DZMK_EXTRA_MODULES=/workspaces/zmk/zmk-pmw3610-driver
 ```
